@@ -1,0 +1,91 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<style>
+table {
+	text-align:center;
+}
+#createFormWrapper {
+	display: none;
+}
+</style>
+</head>
+<body>
+<button id="btnDisplayForm" class="btn btn-primary col-xs-12">Create New</button>
+<div class="container">
+	<div id="createFormWrapper" >
+		Person name <br/>
+		<input type="text" id="name" class="form-control"><p/>
+		Person phone number<br/>
+		<input type="text" id="number" class="form-control"><p/>
+		<button id="btnCreate" class="btn btn-primary col-xs-12">Create</button>
+	</div>
+</div>
+<table class="table">
+	<thead><tr><td class="col-xs-4">Name</td><td class="col-xs-4">Number</td><td class="col-xs-2">Edit Contact</td><td class="col-xs-2">Call Number</td></tr></thead>
+	<tbody id="content">
+	</tbody>
+</table>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script>
+$(function(){
+	const baseUrl = 'https://phonebook-794eb.firebaseio.com/phonebook/';
+	$('#btnCreate').click(createContact);
+	$('#btnDisplayForm').click(displayForm);
+	
+	function displayContent(phonebook){
+		for(let contact in phonebook) {
+		let result = $('<tr><td>' + phonebook[contact].name + '</td><td>' + phonebook[contact].number + '</td><td><button class="btnEdit btn btn-primary">EDIT</button></td><td><a class="btn btn-success" href="tel:' + phonebook[contact].number + '">CALL</a></td><tr/>');
+		result.find('.btnEdit').click(function() { editContact(contact) })
+		$('#content').append(result);
+		}
+	}
+	
+	function createContact() {
+		let _name = $('#name').val();
+		let _number = $('#number').val();
+		let newContact = { name: _name, number: _number };
+		let request = {
+			url: baseUrl + ".json",
+			method: "POST",
+			data: JSON.stringify(newContact)
+	
+		}
+		$.ajax(request)
+		.then(loadContent).then(function(){ $('#createFormWrapper').slideToggle("slow"); })
+		.catch(displayError);
+
+	}
+	
+	function displayError()
+	{
+		$('#content').html('<li>').text('error');
+	}
+	
+	function loadContent() {
+		$('#content').empty();
+		$.get(baseUrl + '.json').then(displayContent).catch(displayError);
+	}
+	function deleteContact(contact){
+		let request = {
+			method: 'DELETE',
+			url: baseUrl + contact + '.json'
+		}
+		$.ajax(request).then(loadContent).catch(displayError);
+	}
+	function editContact(contact) {
+		let request = {
+			method: 'PATCH',
+			url: baseurl + contact + '.json',
+		}
+	}
+	function displayForm() {
+		$('#createFormWrapper').slideToggle("slow");
+	}
+	loadContent();
+})
+</script>
+</body>
+</html>
